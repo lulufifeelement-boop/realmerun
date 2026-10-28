@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<title>realme run — загрузка</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b1220;color:#f3f6fb;font:16px system-ui,-apple-system,"Segoe UI",sans-serif}
+#status{position:fixed;inset:0;display:grid;place-content:center;text-align:center;padding:24px;gap:12px}
+#status strong{color:#ffc800;font-size:clamp(28px,7vw,52px)}
+#status small{color:#9aa7bd}
+#game{position:fixed;inset:0;width:100%;height:100%;border:0;display:block;background:#0b1220}
+</style>
+</head>
+<body>
+<div id="status"><strong>realme run</strong><span>Загружаем игру…</span><small>Пожалуйста, не закрывайте страницу</small></div>
+<script>
+(async()=>{
+ const status=document.getElementById("status");
+ try{
+  const total=17,parts=new Array(total);let loaded=0;
+  await Promise.all(Array.from({length:total},async(_,i)=>{
+   const name="game-data/part-"+String(i+1).padStart(3,"0")+".txt";
+   const response=await fetch(name);
+   if(!response.ok)throw new Error("Не удалось загрузить файл "+name+" (HTTP "+response.status+")");
+   parts[i]=await response.text();loaded++;
+   status.children[1].textContent="Загружаем игру… "+loaded+"/"+total;
+  }));
+  const html=parts.join("");
+  if(!html.startsWith("<!doctype html>")||!html.includes("</html>"))throw new Error("Файлы игры загружены не полностью");
+  const iframe=document.createElement("iframe");
+  iframe.id="game";iframe.title="realme run";
+  iframe.setAttribute("allow","autoplay; fullscreen; gamepad");
+  iframe.setAttribute("sandbox","allow-scripts allow-same-origin allow-pointer-lock");
+  iframe.srcdoc=html;
+  document.body.replaceChildren(iframe);
+ }catch(error){
+  status.innerHTML="<strong>Не удалось загрузить игру</strong><span></span><small>Проверьте подключение к интернету и обновите страницу.</small>";
+  status.children[1].textContent=error&&error.message?error.message:"Неизвестная ошибка";
+ }
+})();
+</script>
+</body>
+</html>
