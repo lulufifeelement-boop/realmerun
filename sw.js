@@ -1,6 +1,6 @@
 // Сервис-воркер realme run: после первой загрузки игра запускается без интернета.
 // Номер версии и список библиотек подставляет сборка: при каждом выпуске файл меняется, и браузер сам ставит обновление.
-const BUILD = 'b48628680e';
+const BUILD = '23b47f509d';
 const SHELL = 'realmerun-shell-' + BUILD;      // сама игра (index.html, иконки): новая версия — новый кэш
 const LIBS = 'realmerun-libs-v1';              // Three.js с CDN: версия зашита в адрес, перекачивать не нужно
 const CDN_HOST = 'cdn.jsdelivr.net';
@@ -48,10 +48,16 @@ async function asset(req, url) {
   if (r && r.ok && (r.type === 'basic' || r.type === 'cors')) c.put(req, r.clone());
   return r;
 }
+async function fresh(req) {
+  const c = await caches.open(SHELL);
+  try { const r = await fetch(req, { cache: 'no-store' }); if (r && r.ok) c.put(req, r.clone()); return r; } catch (_) { const hit = await c.match(req, { ignoreVary: true }); if (hit) return hit; throw _; }
+}
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (req.mode === 'navigate') { if (url.origin === self.location.origin) e.respondWith(page(e)); return; }
+  // config.json (адрес рейтинга) и crest.png (герб) меняются без новой версии игры — берём из сети, а без связи из кэша
+  if (url.origin === self.location.origin && /\/(config\.json|crest\.png)$/.test(url.pathname)) { e.respondWith(fresh(req)); return; }
   if (url.origin === self.location.origin || url.hostname === CDN_HOST) e.respondWith(asset(req, url));
 });
