@@ -1,6 +1,6 @@
 // Сервис-воркер realme run: после первой загрузки игра запускается без интернета.
 // Номер версии и список библиотек подставляет сборка: при каждом выпуске файл меняется, и браузер сам ставит обновление.
-const BUILD = '1b82fdc3ca';
+const BUILD = 'a715e444ae';
 const SHELL = 'realmerun-shell-' + BUILD;      // сама игра (index.html, иконки): новая версия — новый кэш
 const LIBS = 'realmerun-libs-v1';              // Three.js с CDN: версия зашита в адрес, перекачивать не нужно
 const CDN_HOST = 'cdn.jsdelivr.net';
